@@ -1,6 +1,8 @@
 import 'package:estacionamiento_aparka/src/screen/menu_screen/menu_page.dart';
+import 'package:estacionamiento_aparka/src/services/services.dart';
 import 'package:estacionamiento_aparka/src/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,9 +12,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-
   bool _passwordVisible = false;
   final _formKey = GlobalKey<FormState>();
+  TextEditingController controllerUsername = TextEditingController();
+  TextEditingController controllerPassword = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -34,15 +37,20 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextFormField(
+                      controller: controllerUsername,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                         filled: true,
-                        hintStyle: const TextStyle(color: AppTheme.colorInput, fontSize: 16, fontWeight: FontWeight.w600),
+                        hintStyle: const TextStyle(
+                            color: AppTheme.colorInput,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600),
                         hintText: "Usuario",
                         fillColor: Colors.white70,
                       ),
+                      textInputAction: TextInputAction.next,
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -55,13 +63,17 @@ class _LoginPageState extends State<LoginPage> {
                       height: 15,
                     ),
                     TextFormField(
+                      controller: controllerPassword,
                       obscureText: !_passwordVisible,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                         filled: true,
-                        hintStyle: const TextStyle(color: AppTheme.colorInput, fontSize: 16, fontWeight: FontWeight.w600),
+                        hintStyle: const TextStyle(
+                            color: AppTheme.colorInput,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600),
                         hintText: "Contraseña",
                         fillColor: Colors.white70,
                         suffixIcon: IconButton(
@@ -93,23 +105,36 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Expanded(
                           child: GestureDetector(
-                              onTap: () {
+                              onTap: () async {
                                 FocusScope.of(context).unfocus();
                                 if (_formKey.currentState!.validate()) {
-                                  Navigator.pushReplacement(context,
-                                      MaterialPageRoute(builder: (context) => const MenuPage()));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text('Bienvenido')),
+                                  EasyLoading.show(
+                                    status: 'Cargando...',
+                                    maskType: EasyLoadingMaskType.black,
                                   );
+                                  bool? validation = await Services()
+                                      .LoginResponse(
+                                          context,
+                                          controllerUsername.text,
+                                          controllerPassword.text);
+                                  if (validation == true) {
+                                    EasyLoading.dismiss();
+                                    Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const MenuPage()));
+                                  } else {
+                                    EasyLoading.dismiss();
+                                  }
                                 }
                               },
                               child: Container(
-                                padding: const EdgeInsets.only(top: 10, bottom: 10),
+                                padding:
+                                    const EdgeInsets.only(top: 10, bottom: 10),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primary,
-                                  borderRadius: BorderRadius.circular(20)
-                                ),
+                                    color: AppTheme.primary,
+                                    borderRadius: BorderRadius.circular(20)),
                                 child: const Column(
                                   children: [
                                     Text(

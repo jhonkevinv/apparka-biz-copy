@@ -1,8 +1,12 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:estacionamiento_aparka/src/screen/report_screen/report_page.dart';
+import 'package:estacionamiento_aparka/src/screen/validation_screen/selection_page.dart';
+import 'package:estacionamiento_aparka/src/services/services.dart';
 import 'package:estacionamiento_aparka/src/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class ValidationPage extends StatefulWidget {
@@ -55,30 +59,36 @@ class _ValidationPageState extends State<ValidationPage> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              const SizedBox(height: 10,),
+              const SizedBox(
+                height: 10,
+              ),
               Row(
                 children: [
-                  Expanded(child: RichText(
-                    text: const TextSpan(
-                      children: <TextSpan>[
-                        TextSpan(
-                            text: 'Escanea ',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: AppTheme.secondary,
-                                fontWeight: FontWeight.w700)),
-                        TextSpan(
-                            text: 'tu ticket de estacionamiento para saber el monto a pagar',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: AppTheme.secondary,
-                                fontWeight: FontWeight.w400)),
-                      ],
+                  Expanded(
+                    child: RichText(
+                      text: const TextSpan(
+                        children: <TextSpan>[
+                          TextSpan(
+                              text: 'Escanea ',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppTheme.secondary,
+                                  fontWeight: FontWeight.w700)),
+                          TextSpan(
+                              text: 'tu ticket de estacionamiento',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppTheme.secondary,
+                                  fontWeight: FontWeight.w400)),
+                        ],
+                      ),
                     ),
-                  ),)
+                  )
                 ],
               ),
-              const SizedBox(height: 30,),
+              const SizedBox(
+                height: 30,
+              ),
               SizedBox(
                   height: MediaQuery.of(context).size.height / 1.6,
                   child: _buildQrView(context)),
@@ -88,10 +98,7 @@ class _ValidationPageState extends State<ValidationPage> {
   }
 
   Widget _buildQrView(BuildContext context) {
-    var scanArea = (MediaQuery.of(context).size.width < 400 ||
-            MediaQuery.of(context).size.height < 400)
-        ? 150.0
-        : 300.0;
+    var scanArea = MediaQuery.of(context).size.width / 1.3;
     return QRView(
       key: qrKey,
       onQRViewCreated: _onQRViewCreated,
@@ -111,10 +118,18 @@ class _ValidationPageState extends State<ValidationPage> {
     setState(() {
       this.controller = controller;
     });
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-      });
+    controller.scannedDataStream.listen((scanData) async {
+      controller.pauseCamera();
+      EasyLoading.show(
+        status: 'Validando...',
+        maskType: EasyLoadingMaskType.black,
+      );
+      final result =
+          await Services().CalcularTicket(context, scanData.code.toString());
+
+      if (result == false) {
+        controller.resumeCamera();
+      }
     });
   }
 

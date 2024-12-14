@@ -12,9 +12,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   cupertino_icons: ^1.0.8
   qr_code_scanner_plus: ^2.0.6
+  get_storage: ^2.1.1
+  dio: ^5.7.0
+  flutter_easyloading: ^3.0.5
 
 dev_dependencies:
   flutter_test:
