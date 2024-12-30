@@ -125,8 +125,8 @@ class _RequestPageState extends State<ConsumptionPage> {
                                 iconEnabledColor: AppTheme.primary,
                                 isExpanded: true,
                                 value: dropDownValue,
-                                onChanged: (Value) => setState(() {
-                                  dropDownValue = Value;
+                                onChanged: (value) => setState(() {
+                                  dropDownValue = value;
                                 }),
                                 items: selectItem
                                     .map((tarifa) => DropdownMenuItem(
@@ -172,7 +172,7 @@ class _RequestPageState extends State<ConsumptionPage> {
                                       AppTheme.white,
                                       FontWeight.w600),
                                 ),
-                                Container(
+                                SizedBox(
                                   height: 320,
                                   child: ListView(
                                     children: [

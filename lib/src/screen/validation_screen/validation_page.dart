@@ -1,8 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-
-import 'package:estacionamiento_aparka/src/screen/report_screen/report_page.dart';
-import 'package:estacionamiento_aparka/src/screen/validation_screen/selection_page.dart';
 import 'package:estacionamiento_aparka/src/services/services.dart';
 import 'package:estacionamiento_aparka/src/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -92,6 +89,15 @@ class _ValidationPageState extends State<ValidationPage> {
               SizedBox(
                   height: MediaQuery.of(context).size.height / 1.6,
                   child: _buildQrView(context)),
+              TextButton(
+                  onPressed: () async {
+                    final result = await Services().calcularTicket(context, '');
+
+                    if (result == false) {
+                      controller?.resumeCamera();
+                    }
+                  },
+                  child: const Text('Reporte'))
             ],
           ),
         ));
@@ -125,7 +131,7 @@ class _ValidationPageState extends State<ValidationPage> {
         maskType: EasyLoadingMaskType.black,
       );
       final result =
-          await Services().CalcularTicket(context, scanData.code.toString());
+          await Services().calcularTicket(context, scanData.code.toString());
 
       if (result == false) {
         controller.resumeCamera();

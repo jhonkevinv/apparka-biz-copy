@@ -1,12 +1,12 @@
-import 'dart:convert';
-
+import 'package:estacionamiento_aparka/src/services/services.dart';
 import 'package:estacionamiento_aparka/src/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class SelectionPage extends StatefulWidget {
-  SelectionPage({super.key, this.mapData});
+  const SelectionPage({super.key, this.mapData});
 
-  dynamic mapData;
+  final dynamic mapData;
 
   @override
   State<SelectionPage> createState() => _SelectionPageState();
@@ -14,15 +14,35 @@ class SelectionPage extends StatefulWidget {
 
 class _SelectionPageState extends State<SelectionPage> {
   String? dropDownValue;
-  int index = 0;
   List listDropdown = [];
-  List<String> selectItem = ['Eventuales por minuto', 'Experta Clientes 3h'];
+  List listVales = [];
+  List<int> items = [];
+  List<int> items2 = [];
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+    items = List.generate(widget.mapData['vales'].length, (index) => 0);
+    items2 = List.generate(widget.mapData['vales'].length,
+        (index) => widget.mapData['vales'][index]['minutosNumero']);
     listDropdown = widget.mapData['tarifas'];
+    listVales = widget.mapData['vales'];
+  }
+
+  // Incrementar valor
+  void increment(int index) {
+    setState(() {
+      items[index]++;
+    });
+  }
+
+  // Decrementar valor
+  void decrement(int index) {
+    setState(() {
+      if (items[index] > 0) {
+        items[index]--;
+      }
+    });
   }
 
   @override
@@ -68,23 +88,28 @@ class _SelectionPageState extends State<SelectionPage> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              TextCard('Playa', widget.mapData['idPlaya'].toString()),
+                              TextCard('Playa',
+                                  widget.mapData['idPlaya'].toString()),
                               const SizedBox(
                                 height: 10,
                               ),
-                              TextCard('Ticket', widget.mapData['numero'].toString()),
+                              TextCard('Ticket',
+                                  widget.mapData['numero'].toString()),
                               const SizedBox(
                                 height: 10,
                               ),
-                              TextCard('Placa',  widget.mapData['placa'].toString()),
+                              TextCard('Placa',
+                                  widget.mapData['placa'] ?? 'Sin placa'),
                               const SizedBox(
                                 height: 10,
                               ),
-                              TextCard('Ingreso', widget.mapData['horaIngreso'].toString()),
+                              TextCard('Ingreso',
+                                  widget.mapData['horaIngreso'].toString()),
                               const SizedBox(
                                 height: 10,
                               ),
-                              TextCard('Tiempo', widget.mapData['tiempoTotal'].toString()),
+                              TextCard('Tiempo',
+                                  widget.mapData['tiempoTotal'].toString()),
                               const SizedBox(
                                 height: 20,
                               ),
@@ -124,235 +149,129 @@ class _SelectionPageState extends State<SelectionPage> {
                           ),
                         ),
                       )),
-                  if (dropDownValue == 'Eventuales por minuto')
-                    Column(
-                      children: [
-                        Padding(
-                            padding: const EdgeInsets.only(top: 10, bottom: 10),
-                            child: Card(
-                              color: AppTheme.white,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                              margin: const EdgeInsets.all(10),
-                              elevation: 10,
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16, right: 16, top: 20, bottom: 20),
-                                child: Row(
-                                  children: [
-                                    const Expanded(
-                                        flex: 5,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Vales 30 minutos',
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: AppTheme.secondary,
-                                                  fontWeight: FontWeight.w500),
+                  Flexible(
+                      child: ListView.builder(
+                    itemCount: listVales.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 8),
+                          child: Card(
+                            color: AppTheme.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            margin: const EdgeInsets.all(10),
+                            elevation: 10,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 16, right: 16, top: 20, bottom: 20),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                      flex: 5,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Vales ${listVales[index]['minutosNumero']} minutos',
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                color: AppTheme.secondary,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          Text(
+                                            'Saldo: ${listVales[index]['cantidad']} vales',
+                                            style: const TextStyle(
+                                                fontSize: 14,
+                                                color: AppTheme.secondary,
+                                                fontWeight: FontWeight.w400),
+                                          ),
+                                          const SizedBox(
+                                            height: 8,
+                                          ),
+                                          Text(
+                                            'Asignado: ${items[index].toString()} vales',
+                                            style: const TextStyle(
+                                                fontSize: 14,
+                                                color: AppTheme.secondary,
+                                                fontWeight: FontWeight.w400),
+                                          )
+                                        ],
+                                      )),
+                                  Expanded(
+                                      flex: 3,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                                color: AppTheme.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                border: Border.all(
+                                                    color: AppTheme.primary)),
+                                            padding: const EdgeInsets.only(
+                                                top: 10,
+                                                bottom: 10,
+                                                left: 8,
+                                                right: 8),
+                                            child: Row(
+                                              children: [
+                                                GestureDetector(
+                                                    onTap: () {
+                                                      if (listVales[index]
+                                                              ['cantidad'] >
+                                                          0) {
+                                                        decrement(index);
+                                                      }
+                                                    },
+                                                    child: const Icon(
+                                                      Icons.remove,
+                                                      color: AppTheme.primary,
+                                                      size: 20,
+                                                    )),
+                                                const SizedBox(
+                                                  width: 8,
+                                                ),
+                                                Text(
+                                                  items[index].toString(),
+                                                  style: const TextStyle(
+                                                      fontSize: 14,
+                                                      color: AppTheme.secondary,
+                                                      fontWeight:
+                                                          FontWeight.w400),
+                                                ),
+                                                const SizedBox(
+                                                  width: 8,
+                                                ),
+                                                GestureDetector(
+                                                    onTap: () {
+                                                      if (items[index] <
+                                                          listVales[index]
+                                                              ['cantidad']) {
+                                                        increment(index);
+                                                      }
+                                                    },
+                                                    child: const Icon(
+                                                      Icons.add,
+                                                      color: AppTheme.primary,
+                                                      size: 20,
+                                                    ))
+                                              ],
                                             ),
-                                            SizedBox(
-                                              height: 15,
-                                            ),
-                                            Text(
-                                              'Saldo: 10 vales',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: AppTheme.secondary,
-                                                  fontWeight: FontWeight.w400),
-                                            ),
-                                            SizedBox(
-                                              height: 8,
-                                            ),
-                                            Text(
-                                              'Asignado: 3 vales',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: AppTheme.secondary,
-                                                  fontWeight: FontWeight.w400),
-                                            )
-                                          ],
-                                        )),
-                                    Expanded(
-                                        flex: 3,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          children: [
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                  color: AppTheme.white,
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  border: Border.all(
-                                                      color: AppTheme.primary)),
-                                              padding: const EdgeInsets.only(
-                                                  top: 10,
-                                                  bottom: 10,
-                                                  left: 8,
-                                                  right: 8),
-                                              child: Row(
-                                                children: [
-                                                  GestureDetector(
-                                                      onTap: () {
-                                                        if (index > 0) {
-                                                          setState(() {
-                                                            index--;
-                                                          });
-                                                        }
-                                                      },
-                                                      child: const Icon(
-                                                        Icons.remove,
-                                                        color: AppTheme.primary,
-                                                        size: 20,
-                                                      )),
-                                                  const SizedBox(
-                                                    width: 8,
-                                                  ),
-                                                  Text(
-                                                    index.toString(),
-                                                    style: const TextStyle(
-                                                        fontSize: 14,
-                                                        color:
-                                                            AppTheme.secondary,
-                                                        fontWeight:
-                                                            FontWeight.w400),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 8,
-                                                  ),
-                                                  GestureDetector(
-                                                      onTap: () {
-                                                        if (index < 3) {
-                                                          setState(() {
-                                                            index++;
-                                                          });
-                                                        }
-                                                      },
-                                                      child: const Icon(
-                                                        Icons.add,
-                                                        color: AppTheme.primary,
-                                                        size: 20,
-                                                      ))
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ))
-                                  ],
-                                ),
+                                          ),
+                                        ],
+                                      ))
+                                ],
                               ),
-                            )),
-                        Padding(
-                            padding: const EdgeInsets.only(top: 10, bottom: 10),
-                            child: Card(
-                              color: AppTheme.white,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                              margin: const EdgeInsets.all(10),
-                              elevation: 10,
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16, right: 16, top: 20, bottom: 20),
-                                child: Row(
-                                  children: [
-                                    const Expanded(
-                                        flex: 5,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Vales 60 minutos',
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: AppTheme.secondary,
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                            SizedBox(
-                                              height: 15,
-                                            ),
-                                            Text(
-                                              'Saldo: 10 vales',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: AppTheme.secondary,
-                                                  fontWeight: FontWeight.w400),
-                                            ),
-                                            SizedBox(
-                                              height: 8,
-                                            ),
-                                            Text(
-                                              'Asignado: 0 vales',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: AppTheme.secondary,
-                                                  fontWeight: FontWeight.w400),
-                                            )
-                                          ],
-                                        )),
-                                    Expanded(
-                                        flex: 3,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          children: [
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                  color: AppTheme.white,
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  border: Border.all(
-                                                      color: AppTheme.primary)),
-                                              padding: const EdgeInsets.only(
-                                                  top: 10,
-                                                  bottom: 10,
-                                                  left: 8,
-                                                  right: 8),
-                                              child: Row(
-                                                children: [
-                                                  GestureDetector(
-                                                      onTap: () {},
-                                                      child: const Icon(
-                                                        Icons.remove,
-                                                        color: AppTheme.primary,
-                                                        size: 20,
-                                                      )),
-                                                  const SizedBox(
-                                                    width: 8,
-                                                  ),
-                                                  const Text(
-                                                    '0',
-                                                    style: TextStyle(
-                                                        fontSize: 14,
-                                                        color:
-                                                            AppTheme.secondary,
-                                                        fontWeight:
-                                                            FontWeight.w400),
-                                                  ),
-                                                  const SizedBox(
-                                                    width: 8,
-                                                  ),
-                                                  GestureDetector(
-                                                      onTap: () {},
-                                                      child: const Icon(
-                                                        Icons.add,
-                                                        color: AppTheme.primary,
-                                                        size: 20,
-                                                      ))
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ))
-                                  ],
-                                ),
-                              ),
-                            )),
-                      ],
-                    )
+                            ),
+                          ));
+                    },
+                  ))
                 ],
               ),
             )),
@@ -368,7 +287,12 @@ class _SelectionPageState extends State<SelectionPage> {
                         left: 20, right: 20, bottom: 30, top: 10),
                     child: Row(
                       children: [
-                        if (index != 0)
+                        if (dropDownValue != null &&
+                            List.generate(
+                                  items.length,
+                                  (index) => items[index] * items2[index],
+                                ).fold(0, (sum, number) => sum + number) >
+                                0)
                           Expanded(
                               flex: 6,
                               child: Column(
@@ -382,14 +306,17 @@ class _SelectionPageState extends State<SelectionPage> {
                                         fontWeight: FontWeight.w400),
                                   ),
                                   Text(
-                                    '${index.toString()} ${index == 1 ? 'vale' : 'vales'}',
+                                    '${items.fold(0, (sum, number) => sum + number).toString()} ${items.fold(0, (sum, number) => sum + number) == 1 ? 'vale' : 'vales'}',
                                     style: const TextStyle(
                                         fontSize: 16,
                                         color: AppTheme.secondary,
                                         fontWeight: FontWeight.w700),
                                   ),
                                   Text(
-                                    '${index * 30} minutos',
+                                    '${List.generate(
+                                      items.length,
+                                      (index) => items[index] * items2[index],
+                                    ).fold(0, (sum, number) => sum + number).toString()} minutos',
                                     style: const TextStyle(
                                         fontSize: 14,
                                         color: AppTheme.secondary,
@@ -401,13 +328,51 @@ class _SelectionPageState extends State<SelectionPage> {
                             flex: 7,
                             child: GestureDetector(
                                 onTap: () async {
-                                  if (index != 0) {
-                                    alertSuccess(context);
+                                  if (dropDownValue != null &&
+                                      List.generate(
+                                            items.length,
+                                            (index) =>
+                                                items[index] * items2[index],
+                                          ).fold(0,
+                                              (sum, number) => sum + number) >
+                                          0) {
+                                    EasyLoading.show(
+                                      status: 'Validando...',
+                                      maskType: EasyLoadingMaskType.black,
+                                    );
+                                    final result = await Services()
+                                        .consumirTicket(
+                                            context,
+                                            List.generate(
+                                              items.length,
+                                              (index) =>
+                                                  items[index] * items2[index],
+                                            ).fold(0,
+                                                (sum, number) => sum + number),
+                                            items.fold(0,
+                                                (sum, number) => sum + number),
+                                            widget.mapData['idPlaya'],
+                                            int.parse(dropDownValue ?? ''),
+                                            widget.mapData['idMovimiento']);
+
+                                    if (result == false) {
+                                      alert(context, error: true);
+                                    } else {
+                                      alert(context);
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Seleccionar la tarifa o vales'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
                                   }
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.only(
-                                      top: 10, bottom: 10),
+                                      top: 12, bottom: 12),
                                   decoration: BoxDecoration(
                                       color: AppTheme.primary,
                                       borderRadius: BorderRadius.circular(20)),
@@ -463,26 +428,26 @@ class _SelectionPageState extends State<SelectionPage> {
     );
   }
 
-  alertSuccess(context) {
+  alert(context, {bool error = false}) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return PopScope(
           canPop: customLogic(),
           child: AlertDialog(
-              title: const Column(
+              title: Column(
                 children: [
                   Icon(
-                    Icons.check_circle,
-                    color: Color(0xFF6CAC3B),
+                    error ? Icons.error : Icons.check_circle,
+                    color: error ? Colors.red : const Color(0xFF6CAC3B),
                     size: 80,
                   ),
                   Text(
-                    'Ticket\nvalidado',
+                    error ? '¡Ups!' : 'Ticket\nvalidado',
                     style: TextStyle(
                         fontSize: 36,
-                        color: AppTheme.secondary,
-                        fontWeight: FontWeight.w500),
+                        color: error ? Colors.red : AppTheme.secondary,
+                        fontWeight: error ? FontWeight.w700 : FontWeight.w500),
                     textAlign: TextAlign.center,
                   )
                 ],
@@ -490,9 +455,11 @@ class _SelectionPageState extends State<SelectionPage> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Se asignaron las horas\ncorrectamente',
-                    style: TextStyle(
+                  Text(
+                    error
+                        ? 'No se asignaron las horas\ncorrectamente'
+                        : 'Se asignaron las horas\ncorrectamente',
+                    style: const TextStyle(
                         fontSize: 14,
                         color: AppTheme.secondary,
                         fontWeight: FontWeight.w400),
@@ -506,7 +473,6 @@ class _SelectionPageState extends State<SelectionPage> {
                       Expanded(
                           child: GestureDetector(
                               onTap: () async {
-                                Navigator.pop(context);
                                 Navigator.pop(context);
                                 Navigator.pop(context);
                               },

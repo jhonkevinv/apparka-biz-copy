@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:estacionamiento_aparka/src/Environment/environment.dart';
 import 'package:estacionamiento_aparka/src/screen/validation_screen/selection_page.dart';
@@ -41,7 +39,7 @@ class Services {
         );
         return false;
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.response?.data["mensaje"])),
       );
@@ -49,13 +47,12 @@ class Services {
     }
   }
 
-  Future<bool?> CalcularTicket(BuildContext context, String idTicket) async {
+  Future<bool?> calcularTicket(BuildContext context, String idTicket) async {
     dio.options.connectTimeout = connectTimeout;
     dio.options.receiveTimeout = receiveTimeout;
     final tokenUser = GetStorage().read('tokenAccountAparka');
     final idUser = GetStorage().read('idUserAparka');
-    final data = {"idTicket": '155505670693021112242582', "idUser": idUser};
-    print('data: $data');
+    final data = {"idTicket": '009501010711011226243447', "idUser": idUser};
     try {
       final response = await dio.post(
         '$url/playa/ticket/calcular',
@@ -67,12 +64,16 @@ class Services {
       );
       if (response.statusCode == 200) {
         final mapData = json.decode(response.toString());
+        print('mapData: $mapData');
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
                 builder: (context) => SelectionPage(mapData: mapData)));
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Escaneo Exitoso'), backgroundColor: Colors.green,),
+          const SnackBar(
+            content: Text('Escaneo Exitoso'),
+            backgroundColor: Colors.green,
+          ),
         );
         EasyLoading.dismiss();
         return true;
@@ -83,7 +84,7 @@ class Services {
         );
         return false;
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       EasyLoading.dismiss();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.response?.data["mensaje"])),
@@ -91,6 +92,50 @@ class Services {
       return false;
     }
   }
+
+  Future<bool?> consumirTicket(BuildContext context, int minutosNumero,
+      int cantidad, int playaId, int tarifaId, int movimientoId) async {
+    dio.options.connectTimeout = connectTimeout;
+    dio.options.receiveTimeout = receiveTimeout;
+    final tokenUser = GetStorage().read('tokenAccountAparka');
+    final idUser = GetStorage().read('idUserAparka');
+    final data = {
+      "movimientoId": movimientoId,
+      "usuarioId": idUser,
+      "tarifaId": tarifaId,
+      "playaId": playaId,
+      "cantidad": cantidad,
+      "minutosNumero": minutosNumero
+    };
+    try {
+      final response = await dio.post(
+        '$url/playa/ticket/reporte',
+        options: Options(
+          contentType: 'application/json',
+          headers: {'Authorization': 'Bearer $tokenUser'},
+        ),
+        data: data,
+      );
+      if (response.statusCode == 200) {
+        EasyLoading.dismiss();
+        return true;
+      } else {
+        EasyLoading.dismiss();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.data["mensaje"])),
+        );
+        return false;
+      }
+    } on DioException catch (e) {
+      EasyLoading.dismiss();
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.response?.data)),
+      );
+      return false;
+    }
+  }
+
   Future<List?> ListReport(BuildContext context) async {
     dio.options.connectTimeout = connectTimeout;
     dio.options.receiveTimeout = receiveTimeout;
@@ -105,15 +150,17 @@ class Services {
         ),
       );
       if (response.statusCode == 200) {
-        print('mapData: ${response.data}');
         return response.data;
       } else {
         return [];
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       EasyLoading.dismiss();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.response?.data["mensaje"]), backgroundColor: Colors.red,),
+        SnackBar(
+          content: Text(e.response?.data["mensaje"]),
+          backgroundColor: Colors.red,
+        ),
       );
       return [];
     }
