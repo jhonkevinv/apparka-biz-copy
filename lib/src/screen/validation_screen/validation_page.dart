@@ -89,15 +89,15 @@ class _ValidationPageState extends State<ValidationPage> {
               SizedBox(
                   height: MediaQuery.of(context).size.height / 1.6,
                   child: _buildQrView(context)),
-              TextButton(
-                  onPressed: () async {
-                    final result = await Services().calcularTicket(context, '');
+              // TextButton(
+              //     onPressed: () async {
+              //       final result = await Services().calcularTicket(context, '');
 
-                    if (result == false) {
-                      controller?.resumeCamera();
-                    }
-                  },
-                  child: const Text('Reporte'))
+              //       if (result == false) {
+              //         controller?.resumeCamera();
+              //       }
+              //     },
+              //     child: const Text('Reporte'))
             ],
           ),
         ));

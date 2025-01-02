@@ -18,7 +18,10 @@ class _MenuPageState extends State<MenuPage> {
       backgroundColor: AppTheme.white,
       appBar: AppBar(
         backgroundColor: AppTheme.secondary,
-        title: Image.asset('assets/icon/logo.png', width: 180,),
+        title: Image.asset(
+          'assets/icon/logo.png',
+          width: 180,
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -26,28 +29,41 @@ class _MenuPageState extends State<MenuPage> {
               Navigator.pushReplacement(context,
                   MaterialPageRoute(builder: (context) => const LoginPage()));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Sesión Cerrada.')),
+                const SnackBar(content: Text('Sesión Cerrada.')),
               );
             },
-            icon: const Icon(Icons.exit_to_app, color: AppTheme.white,),
+            icon: const Icon(
+              Icons.exit_to_app,
+              color: AppTheme.white,
+            ),
           ),
         ],
       ),
       body: Column(
         children: [
-          const SizedBox(height: 80,),
+          const SizedBox(
+            height: 80,
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => const ValidationPage()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ValidationPage()));
                 },
                 child: Column(
                   children: [
-                    Image.asset('assets/icon/validation.png', width: 150,),
+                    Container(
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          image: const DecorationImage(
+                              image: AssetImage('assets/icon/validation.png'))),
+                      width: 150,
+                      height: 150,
+                    ),
                     const Text(
                       'Validación\nde Ticket',
                       style: TextStyle(
@@ -60,18 +76,29 @@ class _MenuPageState extends State<MenuPage> {
               ),
             ],
           ),
-          const SizedBox(height: 80,),
+          const SizedBox(
+            height: 80,
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => const ReportPage()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ReportPage()));
                 },
                 child: Column(
                   children: [
-                    Image.asset('assets/icon/report.png', width: 150,),
+                    Container(
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          image: const DecorationImage(
+                              image: AssetImage('assets/icon/report.png'))),
+                      width: 150,
+                      height: 150,
+                    ),
                     const Text(
                       'Reportes',
                       style: TextStyle(
