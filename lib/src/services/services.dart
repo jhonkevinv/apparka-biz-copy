@@ -64,7 +64,6 @@ class Services {
       );
       if (response.statusCode == 200) {
         final mapData = json.decode(response.toString());
-        print('mapData: $mapData');
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
