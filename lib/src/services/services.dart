@@ -80,14 +80,14 @@ class Services {
       } else {
         EasyLoading.dismiss();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.data["mensaje"])),
+          SnackBar(content: Text(response.data["Ticket no valido."])),
         );
         return false;
       }
     } on DioException catch (e) {
       EasyLoading.dismiss();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.response?.data["mensaje"])),
+        SnackBar(content: Text(e.response?.data["Ticket no valido."])),
       );
       return false;
     }
