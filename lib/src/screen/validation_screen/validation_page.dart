@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:estacionamiento_aparka/src/screen/validation_screen/selection_page.dart';
 import 'package:estacionamiento_aparka/src/services/services.dart';
 import 'package:estacionamiento_aparka/src/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -133,8 +134,14 @@ class _ValidationPageState extends State<ValidationPage> {
       final result =
           await Services().calcularTicket(context, scanData.code.toString());
 
-      if (result == false) {
-        controller.resumeCamera();
+      if (result != 'true') {
+        alert(context,
+            error: true,
+            errorGeneral: true,
+            textErrorGeneral: result["errors"][0]['ErrorMessage'].toString(),
+            onTap: () {
+          controller.resumeCamera();
+        });
       }
     });
   }

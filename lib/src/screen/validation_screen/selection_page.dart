@@ -18,6 +18,7 @@ class _SelectionPageState extends State<SelectionPage> {
   List listVales = [];
   List<int> items = [];
   List<int> items2 = [];
+  List listFinal = [];
 
   @override
   void initState() {
@@ -30,9 +31,13 @@ class _SelectionPageState extends State<SelectionPage> {
   }
 
   // Incrementar valor
-  void increment(int index) {
+  void increment(int index, int minutosNumero) {
     setState(() {
       items[index]++;
+      listFinal.add({
+        "cantidad": items[index],
+        "minutosNumero": minutosNumero,
+      });
     });
   }
 
@@ -41,6 +46,7 @@ class _SelectionPageState extends State<SelectionPage> {
     setState(() {
       if (items[index] > 0) {
         items[index]--;
+        listFinal.removeLast();
       }
     });
   }
@@ -88,8 +94,10 @@ class _SelectionPageState extends State<SelectionPage> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              TextCard('Playa',
-                                  widget.mapData['idPlaya'].toString()),
+                              TextCard(
+                                  'Playa',
+                                  widget.mapData['descripcionPlaya']
+                                      .toString()),
                               const SizedBox(
                                 height: 10,
                               ),
@@ -253,7 +261,10 @@ class _SelectionPageState extends State<SelectionPage> {
                                                       if (items[index] <
                                                           listVales[index]
                                                               ['cantidad']) {
-                                                        increment(index);
+                                                        increment(
+                                                            index,
+                                                            listVales[index][
+                                                                'minutosNumero']);
                                                       }
                                                     },
                                                     child: const Icon(
@@ -336,29 +347,62 @@ class _SelectionPageState extends State<SelectionPage> {
                                           ).fold(0,
                                               (sum, number) => sum + number) >
                                           0) {
-                                    EasyLoading.show(
-                                      status: 'Validando...',
-                                      maskType: EasyLoadingMaskType.black,
-                                    );
-                                    final result = await Services()
-                                        .consumirTicket(
-                                            context,
-                                            List.generate(
-                                              items.length,
-                                              (index) =>
-                                                  items[index] * items2[index],
-                                            ).fold(0,
-                                                (sum, number) => sum + number),
-                                            items.fold(0,
-                                                (sum, number) => sum + number),
-                                            widget.mapData['idPlaya'],
-                                            int.parse(dropDownValue ?? ''),
-                                            widget.mapData['idMovimiento']);
+                                    if (List.generate(
+                                          items.length,
+                                          (index) =>
+                                              items[index] * items2[index],
+                                        ).fold(
+                                            0, (sum, number) => sum + number) >
+                                        int.parse(widget
+                                            .mapData['tiempoMinutos']
+                                            .toString())) {
+                                      EasyLoading.show(
+                                        status: 'Cargando...',
+                                        maskType: EasyLoadingMaskType.black,
+                                      );
 
-                                    if (result == false) {
-                                      alert(context, error: true);
+                                      Map<int, Map<String, int>> agrupado = {};
+
+                                      for (var item in listFinal) {
+                                        int minutos = item["minutosNumero"]!;
+                                        int cantidad = item["cantidad"]!;
+
+                                        if (agrupado.containsKey(minutos)) {
+                                          if (cantidad >
+                                              agrupado[minutos]!["cantidad"]!) {
+                                            agrupado[minutos] = {
+                                              "cantidad": cantidad,
+                                              "minutosNumero": minutos
+                                            };
+                                          }
+                                        } else {
+                                          agrupado[minutos] = {
+                                            "cantidad": cantidad,
+                                            "minutosNumero": minutos
+                                          };
+                                        }
+                                      }
+
+                                      List<Map<String, int>> resultado =
+                                          agrupado.values.toList();
+
+                                      final result = await Services()
+                                          .consumirTicket(
+                                              context,
+                                              resultado,
+                                              widget.mapData['idPlaya'],
+                                              int.parse(dropDownValue ?? ''),
+                                              widget.mapData['idMovimiento']);
+
+                                      if (result == false) {
+                                        EasyLoading.dismiss();
+                                        alert(context, error: true);
+                                      } else {
+                                        EasyLoading.dismiss();
+                                        alert(context);
+                                      }
                                     } else {
-                                      alert(context);
+                                      alert(context, error: true);
                                     }
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -427,85 +471,86 @@ class _SelectionPageState extends State<SelectionPage> {
       ],
     );
   }
+}
 
-  alert(context, {bool error = false}) {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return PopScope(
-          canPop: customLogic(),
-          child: AlertDialog(
-              title: Column(
-                children: [
-                  Icon(
-                    error ? Icons.error : Icons.check_circle,
-                    color: error ? Colors.red : const Color(0xFF6CAC3B),
-                    size: 80,
-                  ),
-                  Text(
-                    error ? '¡Ups!' : 'Ticket\nvalidado',
-                    style: TextStyle(
-                        fontSize: 36,
-                        color: error ? Colors.red : AppTheme.secondary,
-                        fontWeight: error ? FontWeight.w700 : FontWeight.w500),
-                    textAlign: TextAlign.center,
-                  )
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    error
-                        ? 'No se asignaron las horas\ncorrectamente'
-                        : 'Se asignaron las horas\ncorrectamente',
-                    style: const TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.secondary,
-                        fontWeight: FontWeight.w400),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: GestureDetector(
-                              onTap: () async {
-                                Navigator.pop(context);
-                                Navigator.pop(context);
-                              },
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.only(top: 10, bottom: 10),
-                                decoration: BoxDecoration(
-                                    color: AppTheme.primary,
-                                    borderRadius: BorderRadius.circular(20)),
-                                child: const Column(
-                                  children: [
-                                    Text(
-                                      'Cerrar',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          color: AppTheme.white,
-                                          fontWeight: FontWeight.w700),
-                                    )
-                                  ],
-                                ),
-                              )))
-                    ],
-                  )
-                ],
-              )),
-        );
-      },
-    );
-  }
-
-  bool customLogic() {
-    {
-      return false;
-    }
-  }
+alert(context,
+    {bool error = false,
+    bool errorGeneral = false,
+    String textErrorGeneral = '',
+    Function()? onTap}) {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return PopScope(
+        canPop: false,
+        child: AlertDialog(
+            title: Column(
+              children: [
+                Icon(
+                  error ? Icons.error : Icons.check_circle,
+                  color: error ? Colors.red : const Color(0xFF6CAC3B),
+                  size: 80,
+                ),
+                Text(
+                  error ? '¡Ups!' : 'Ticket\nvalidado',
+                  style: TextStyle(
+                      fontSize: 36,
+                      color: error ? Colors.red : AppTheme.secondary,
+                      fontWeight: error ? FontWeight.w700 : FontWeight.w500),
+                  textAlign: TextAlign.center,
+                )
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  errorGeneral
+                      ? textErrorGeneral
+                      : error
+                          ? 'No se asignaron las horas\ncorrectamente'
+                          : 'Se asignaron las horas\ncorrectamente',
+                  style: const TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.secondary,
+                      fontWeight: FontWeight.w400),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                        child: GestureDetector(
+                            onTap: () async {
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                              onTap!();
+                            },
+                            child: Container(
+                              padding:
+                                  const EdgeInsets.only(top: 10, bottom: 10),
+                              decoration: BoxDecoration(
+                                  color: AppTheme.primary,
+                                  borderRadius: BorderRadius.circular(20)),
+                              child: const Column(
+                                children: [
+                                  Text(
+                                    'Cerrar',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        color: AppTheme.white,
+                                        fontWeight: FontWeight.w700),
+                                  )
+                                ],
+                              ),
+                            )))
+                  ],
+                )
+              ],
+            )),
+      );
+    },
+  );
 }

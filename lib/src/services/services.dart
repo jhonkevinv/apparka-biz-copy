@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:estacionamiento_aparka/src/Environment/environment.dart';
 import 'package:estacionamiento_aparka/src/screen/validation_screen/selection_page.dart';
+import 'package:estacionamiento_aparka/src/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get_storage/get_storage.dart';
@@ -27,27 +28,46 @@ class Services {
       );
       if (response.statusCode == 200) {
         final mapData = json.decode(response.toString());
-        GetStorage().write('tokenAccountAparka', mapData["token"]);
-        GetStorage().write('idUserAparka', mapData["idUsuario"]);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bienvenido')),
-        );
-        return true;
+        if (mapData['token'].toString() == 'null') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(mapData["mensaje"].toString()),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return false;
+        } else {
+          GetStorage().write('tokenAccountAparka', mapData["token"]);
+          GetStorage().write('idUserAparka', mapData["idUsuario"]);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Bienvenido'),
+              backgroundColor: AppTheme.primary,),
+          );
+          return true;
+        }
       } else {
+        final mapData = json.decode(response.toString());
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.data["mensaje"])),
+          SnackBar(
+            content: Text(mapData["mensaje"].toString()),
+            backgroundColor: Colors.red,
+          ),
         );
         return false;
       }
     } on DioException catch (e) {
+      final mapData = json.decode(e.response.toString());
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.response?.data["mensaje"])),
+        SnackBar(
+          content: Text(mapData["mensaje"].toString()),
+          backgroundColor: Colors.red,
+        ),
       );
       return false;
     }
   }
 
-  Future<bool?> calcularTicket(BuildContext context, String idTicket) async {
+  Future<dynamic> calcularTicket(BuildContext context, String idTicket) async {
     dio.options.connectTimeout = connectTimeout;
     dio.options.receiveTimeout = receiveTimeout;
     final tokenUser = GetStorage().read('tokenAccountAparka');
@@ -68,32 +88,21 @@ class Services {
             context,
             MaterialPageRoute(
                 builder: (context) => SelectionPage(mapData: mapData)));
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Escaneo Exitoso'),
-            backgroundColor: Colors.green,
-          ),
-        );
         EasyLoading.dismiss();
-        return true;
+        return 'true';
       } else {
+        final mapData = json.decode(response.toString());
         EasyLoading.dismiss();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.data["Ticket no valido."])),
-        );
-        return false;
+        return mapData;
       }
     } on DioException catch (e) {
+      final mapData = json.decode(e.response.toString());
       EasyLoading.dismiss();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.response?.data["Ticket no valido."])),
-      );
-      return false;
+      return mapData;
     }
   }
 
-  Future<bool?> consumirTicket(BuildContext context, int minutosNumero,
-      int cantidad, int playaId, int tarifaId, int movimientoId) async {
+  Future<bool?> consumirTicket(BuildContext context, List detalleVales, int playaId, int tarifaId, int movimientoId) async {
     dio.options.connectTimeout = connectTimeout;
     dio.options.receiveTimeout = receiveTimeout;
     final tokenUser = GetStorage().read('tokenAccountAparka');
@@ -103,12 +112,13 @@ class Services {
       "usuarioId": idUser,
       "tarifaId": tarifaId,
       "playaId": playaId,
-      "cantidad": cantidad,
-      "minutosNumero": minutosNumero
+      "detalleVales": detalleVales
     };
+    print('$url/playa/ticket/consumir');
+    print('data: ${data.toString()}');
     try {
       final response = await dio.post(
-        '$url/playa/ticket/reporte',
+        '$url/playa/ticket/consumir',
         options: Options(
           contentType: 'application/json',
           headers: {'Authorization': 'Bearer $tokenUser'},
@@ -120,17 +130,10 @@ class Services {
         return true;
       } else {
         EasyLoading.dismiss();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.data["mensaje"])),
-        );
         return false;
       }
     } on DioException catch (e) {
       EasyLoading.dismiss();
-      print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.response?.data)),
-      );
       return false;
     }
   }
