@@ -21,9 +21,10 @@ class Services {
     try {
       final response = await dio.post(
         '$url/usuario/obtenertoken',
-        options: Options(
-          contentType: 'application/json',
-        ),
+        options: Options(contentType: 'application/json', headers: {
+          'Ocp-Apim-Subscription-Key':
+              'c9d863a8a13e4bdf85147aea222504a5;product=apparka-biz-apiapp'
+        }),
         data: data,
       );
       if (response.statusCode == 200) {
@@ -40,8 +41,10 @@ class Services {
           GetStorage().write('tokenAccountAparka', mapData["token"]);
           GetStorage().write('idUserAparka', mapData["idUsuario"]);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Bienvenido'),
-              backgroundColor: AppTheme.primary,),
+            const SnackBar(
+              content: Text('Bienvenido'),
+              backgroundColor: AppTheme.primary,
+            ),
           );
           return true;
         }
@@ -78,7 +81,11 @@ class Services {
         '$url/playa/ticket/calcular',
         options: Options(
           contentType: 'application/json',
-          headers: {'Authorization': 'Bearer $tokenUser'},
+          headers: {
+            'Authorization': 'Bearer $tokenUser',
+            'Ocp-Apim-Subscription-Key':
+                'c9d863a8a13e4bdf85147aea222504a5;product=apparka-biz-apiapp'
+          },
         ),
         data: data,
       );
@@ -102,7 +109,8 @@ class Services {
     }
   }
 
-  Future<bool?> consumirTicket(BuildContext context, List detalleVales, int playaId, int tarifaId, int movimientoId) async {
+  Future<bool?> consumirTicket(BuildContext context, List detalleVales,
+      int playaId, int tarifaId, int movimientoId) async {
     dio.options.connectTimeout = connectTimeout;
     dio.options.receiveTimeout = receiveTimeout;
     final tokenUser = GetStorage().read('tokenAccountAparka');
@@ -121,7 +129,11 @@ class Services {
         '$url/playa/ticket/consumir',
         options: Options(
           contentType: 'application/json',
-          headers: {'Authorization': 'Bearer $tokenUser'},
+          headers: {
+            'Authorization': 'Bearer $tokenUser',
+            'Ocp-Apim-Subscription-Key':
+                'c9d863a8a13e4bdf85147aea222504a5;product=apparka-biz-apiapp'
+          },
         ),
         data: data,
       );
@@ -148,7 +160,11 @@ class Services {
         '$url/playa/ticket/reporte?idUsuario=$idUser',
         options: Options(
           contentType: 'application/json',
-          headers: {'Authorization': 'Bearer $tokenUser'},
+          headers: {
+            'Authorization': 'Bearer $tokenUser',
+            'Ocp-Apim-Subscription-Key':
+                'c9d863a8a13e4bdf85147aea222504a5;product=apparka-biz-apiapp'
+          },
         ),
       );
       if (response.statusCode == 200) {
