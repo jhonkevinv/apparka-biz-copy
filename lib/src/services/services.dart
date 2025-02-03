@@ -75,7 +75,7 @@ class Services {
     dio.options.receiveTimeout = receiveTimeout;
     final tokenUser = GetStorage().read('tokenAccountAparka');
     final idUser = GetStorage().read('idUserAparka');
-    final data = {"idTicket": idTicket, "idUser": idUser};
+    final data = {"idTicket": '239402867884020131253749', "idUser": idUser};
     try {
       final response = await dio.post(
         '$url/playa/ticket/calcular',

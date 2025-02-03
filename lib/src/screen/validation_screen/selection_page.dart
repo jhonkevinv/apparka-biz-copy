@@ -27,6 +27,9 @@ class _SelectionPageState extends State<SelectionPage> {
     items2 = List.generate(widget.mapData['vales'].length,
         (index) => widget.mapData['vales'][index]['minutosNumero']);
     listDropdown = widget.mapData['tarifas'];
+    if (listDropdown.isNotEmpty) {
+      dropDownValue = listDropdown.first['id'].toString();
+    }
     listVales = widget.mapData['vales'];
   }
 
@@ -339,7 +342,7 @@ class _SelectionPageState extends State<SelectionPage> {
                             flex: 7,
                             child: GestureDetector(
                                 onTap: () async {
-                                  if (dropDownValue != null &&
+                                  if (dropDownValue != null ||
                                       List.generate(
                                             items.length,
                                             (index) =>
@@ -347,52 +350,20 @@ class _SelectionPageState extends State<SelectionPage> {
                                           ).fold(0,
                                               (sum, number) => sum + number) >
                                           0) {
-                                    if (List.generate(
-                                          items.length,
-                                          (index) =>
-                                              items[index] * items2[index],
-                                        ).fold(
-                                            0, (sum, number) => sum + number) >
-                                        int.parse(widget
-                                            .mapData['tiempoMinutos']
-                                            .toString())) {
-                                      EasyLoading.show(
-                                        status: 'Cargando...',
-                                        maskType: EasyLoadingMaskType.black,
-                                      );
+                                    EasyLoading.show(
+                                      status: 'Cargando...',
+                                      maskType: EasyLoadingMaskType.black,
+                                    );
 
-                                      Map<int, Map<String, int>> agrupado = {};
-
-                                      for (var item in listFinal) {
-                                        int minutos = item["minutosNumero"]!;
-                                        int cantidad = item["cantidad"]!;
-
-                                        if (agrupado.containsKey(minutos)) {
-                                          if (cantidad >
-                                              agrupado[minutos]!["cantidad"]!) {
-                                            agrupado[minutos] = {
-                                              "cantidad": cantidad,
-                                              "minutosNumero": minutos
-                                            };
-                                          }
-                                        } else {
-                                          agrupado[minutos] = {
-                                            "cantidad": cantidad,
-                                            "minutosNumero": minutos
-                                          };
-                                        }
-                                      }
-
-                                      List<Map<String, int>> resultado =
-                                          agrupado.values.toList();
-
+                                    Map<int, Map<String, int>> agrupado = {};
+                                    if(listFinal.length == 0){
                                       final result = await Services()
                                           .consumirTicket(
-                                              context,
-                                              resultado,
-                                              widget.mapData['idPlaya'],
-                                              int.parse(dropDownValue ?? ''),
-                                              widget.mapData['idMovimiento']);
+                                          context,
+                                          [],
+                                          widget.mapData['idPlaya'],
+                                          int.parse(dropDownValue ?? ''),
+                                          widget.mapData['idMovimiento']);
 
                                       if (result == false) {
                                         EasyLoading.dismiss();
@@ -401,8 +372,57 @@ class _SelectionPageState extends State<SelectionPage> {
                                         EasyLoading.dismiss();
                                         alert(context);
                                       }
-                                    } else {
-                                      alert(context, error: true);
+                                    }else{
+                                      if (List.generate(
+                                        items.length,
+                                            (index) =>
+                                        items[index] * items2[index],
+                                      ).fold(
+                                          0, (sum, number) => sum + number) >
+                                          int.parse(widget
+                                              .mapData['tiempoMinutos']
+                                              .toString())) {
+                                        for (var item in listFinal) {
+                                          int minutos = item["minutosNumero"]!;
+                                          int cantidad = item["cantidad"]!;
+
+                                          if (agrupado.containsKey(minutos)) {
+                                            if (cantidad >
+                                                agrupado[minutos]!["cantidad"]!) {
+                                              agrupado[minutos] = {
+                                                "cantidad": cantidad,
+                                                "minutosNumero": minutos
+                                              };
+                                            }
+                                          } else {
+                                            agrupado[minutos] = {
+                                              "cantidad": cantidad,
+                                              "minutosNumero": minutos
+                                            };
+                                          }
+                                        }
+
+                                        List<Map<String, int>> resultado =
+                                        agrupado.values.toList();
+
+                                        final result = await Services()
+                                            .consumirTicket(
+                                            context,
+                                            resultado,
+                                            widget.mapData['idPlaya'],
+                                            int.parse(dropDownValue ?? ''),
+                                            widget.mapData['idMovimiento']);
+
+                                        if (result == false) {
+                                          EasyLoading.dismiss();
+                                          alert(context, error: true);
+                                        } else {
+                                          EasyLoading.dismiss();
+                                          alert(context);
+                                        }
+                                      } else {
+                                        alert(context, error: true);
+                                      }
                                     }
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
